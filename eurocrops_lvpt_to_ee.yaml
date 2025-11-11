@@ -1,0 +1,16 @@
+dataset:
+  split: "latvia_portugal_vs_estonia"
+  countries:
+    train: ["LV", "PT"]
+    extra_train: ["PT"]
+    test: ["EE"]
+
+  pretrain_json: "/mnt/data/split/split/latvia_portugal_vs_estonia/pretrain/region_split.json"
+  finetune_json_tpl: "/mnt/data/split/lvpt_vs_estonia/finetune/split_k_strict/region_split_{k}.json"
+  master_json: "/mnt/data/split/lvpt_vs_estonia/finetune/split_k_strict/region_split_all.json"
+
+train:
+  epochs: 110      # maybe train a little longer with extra country signal
+
+model:
+  dropout: 0.15    # a bit more regularization for the higher domain diversity

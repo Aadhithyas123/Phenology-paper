@@ -1,0 +1,10 @@
+dataset:
+  split: "latvia_vs_estonia"
+  countries:
+    train: ["LV"]
+    extra_train: []
+    test: ["EE"]
+
+  pretrain_json: "/mnt/data/split/split/latvia_vs_estonia/pretrain/region_split.json"
+  finetune_json_tpl: "/mnt/data/split/split/latvia_vs_estonia/finetune/split_k_strict/region_split_{k}.json"
+  master_json: "/mnt/data/split/split/latvia_vs_estonia/finetune/region_split_all.json"

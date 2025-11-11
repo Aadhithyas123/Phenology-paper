@@ -1,0 +1,65 @@
+# ==== Paper-like baseline (non-episodic TL over sequences) ====
+
+seed: 42
+device: "cuda"
+num_workers: 8
+
+paths:
+  outputs_dir: "outputs/actual_paper_overlap_lvpt"   # <— single source of truth
+
+dataset:
+  name: "EuroCropsML"
+  root_npz: "/mnt/data/preprocess/preprocess"
+
+  # Pretraining splits (LV variants)
+  pretrain_json: "/mnt/data/split/split/latvia_vs_estonia/pretrain/region_split.json"
+  pretrain_json_overlap: "/mnt/data/split/split/overlap_latvia_vs_estonia/pretrain/region_split.json"   # LV* (only classes overlapping with EE)
+  pretrain_json_lvpt: "/mnt/data/split/split/latvia_portugal_vs_estonia/pretrain/region_split.json"
+  pretrain_json_lvpt_overlap: "/mnt/data/split/split/overlap_latvia_portugal_vs_estonia/pretrain/region_split.json"
+
+  # Fine-tune k-shot strict splits (EE)
+  finetune_json_tpl: "/mnt/data/split/split/overlap_latvia_portugal_vs_estonia/finetune/region_split_{k}.json" #split_k_strict/
+
+  drop_b10: true            # 12 S2 bands w/out B10 (paper)
+  normalize: "zscore"       # per-parcel over time
+
+encoder:
+  type: "transformer"       # "transformer" (paper-like) or "mlp" (sanity baseline)
+  dim: 128
+  layers: 1
+  nhead: 4
+  ff_mult: 2
+  dropout: 0.2
+  max_len: 1024
+
+pretraining:
+  scenario: "LVPT_overlap"    # set to "LV" for full LV; "LV_overlap" for LV* (recommended to match paper row)
+  batch_size: 128
+  epochs: 150
+  early_stopping_patience: 15
+  lr: 3.0e-4
+  weight_decay: 1.0e-4
+  cosine_anneal:
+    enabled: true           # ON for LV-like rows
+    cycles: 1
+  downsample_meadow_to_median: true
+  meadow_label_id: null      # set numeric ID only if your split JSON has labels; else keep null
+
+finetune:
+  k_grid: [1, 5, 10, 20, 100, 200, 500]
+  batch_size: 16
+  epochs: 200
+  early_stopping_patience: 9999     # effectively no early stop; evaluate last epoch
+  lr_mode: "head_only"              # script can still override conditionally by k if you added that logic
+  lr:
+    head_only: 3.0e-4
+  weight_decay: 1.0e-4
+  cosine_anneal:
+    enabled: false                  # OFF for FT per paper-style baseline
+
+eval:
+  seeds: [0, 1, 2, 3, 4]
+  metrics: ["acc"]
+
+debug_prints: true
+strict_overlap_enforce: true        # keep true if you want code to re-filter LV to overlap classes
